@@ -3,12 +3,34 @@
 unsigned long lastMillis = 0;
 unsigned long interval = 0;
 bool deltaMessageSent = false; // ตัวแปรสำหรับตรวจสอบสถานะการส่งข้อความ
+bool overloadMessageSent = false;
+bool motorOverload = false;
 
 void controlMotor()
 {
     switch (motorState)
     {
+    case MOTOR_OVERLOAD:
+        // หยุดมอเอตอร์ทั้งหมด
+        offRelay(9);
+        motorOverload = true;
+        if (!overloadMessageSent)
+        {
+            Serial.print("Motor Overload!!");
+            lcd.clear();
+            lcd.setCursor(0, 3);
+            lcd.print("Motor Overload!!");
+            publishMessage(topicMotorStatus, "OVERLOAD");
+            overloadMessageSent = true;
+        }
+        break;
     case MOTOR_STOPPED:
+        overloadMessageSent = false;
+        if (motorOverload)
+        {
+            publishMessage(topicMotorStatus, "OFF");
+            motorOverload = false;
+        }
         // หยุดมอเตอร์ทั้งหมด
         // digitalWrite(K1, LOW);
         // digitalWrite(K2, LOW);
@@ -20,6 +42,12 @@ void controlMotor()
         break;
 
     case MOTOR_STAR:
+        overloadMessageSent = false;
+        if (motorOverload)
+        {
+            publishMessage(topicMotorStatus, "STAR");
+            motorOverload = false;
+        }
         // เริ่มในโหมด Star
         // digitalWrite(K1, HIGH);  // เปิดรีเลย์ Main
         onRelay(8);
@@ -35,6 +63,12 @@ void controlMotor()
         break;
 
     case MOTOR_WAITING:
+        overloadMessageSent = false;
+        if (motorOverload)
+        {
+            publishMessage(topicMotorStatus, "STAR");
+            motorOverload = false;
+        }
         if (millis() - lastMillis >= interval)
         {
             // ปิดรีเลย์ Star และเตรียมรอ 250ms ก่อนเข้าสู่โหมด Delta
@@ -42,12 +76,18 @@ void controlMotor()
             offRelay(6);
             Serial.println("Waiting before switching to Delta mode");
             lastMillis = millis(); // ตั้งเวลาใหม่สำหรับรอ 250ms
-            interval = 250;
+            interval = 50;
             motorState = MOTOR_WAITING_DELTA;
         }
         break;
 
     case MOTOR_WAITING_DELTA:
+        overloadMessageSent = false;
+        if (motorOverload)
+        {
+            publishMessage(topicMotorStatus, "STAR");
+            motorOverload = false;
+        }
         if (millis() - lastMillis >= interval)
         {
             // เตรียมเข้าสู่โหมด Delta
@@ -56,6 +96,12 @@ void controlMotor()
         break;
 
     case MOTOR_DELTA:
+        overloadMessageSent = false;
+        if (motorOverload)
+        {
+            publishMessage(topicMotorStatus, "DELTA");
+            motorOverload = false;
+        }
         if (!deltaMessageSent)
         { // ตรวจสอบว่าข้อความ `DELTA` ถูกส่งแล้วหรือยัง
             // digitalWrite(K3, HIGH); // เปิดรีเลย์ Delta

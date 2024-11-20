@@ -4,6 +4,8 @@
 void connectToWiFi()
 {
   Serial.println("Connecting to Wi-Fi...");
+  lcd.setCursor(0, 1);
+  lcd.print("Connecting to WiFi");
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED)
@@ -13,6 +15,9 @@ void connectToWiFi()
   }
 
   Serial.println("\nWi-Fi connected.");
+  lcd.setCursor(0, 1);
+  lcd.print("                  ");
+  lcd.print("Wi-Fi Connected");
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 }
@@ -61,17 +66,30 @@ void connectToMQTT()
     mqttClient.setServer(mqttHost, mqttPort);
     mqttClient.setCallback(handleMQTTMessage);
     Serial.print("Connecting to MQTT broker...");
+    lcd.setCursor(0, 1);
+    lcd.print("                 ");
+    lcd.print("Connecting to MQ");
     if (mqttClient.connect("ESP32Client", mqttUser, mqttPassword))
     {
       Serial.println("connected.");
       mqttClient.subscribe("set_motor_from_server"); // Subscribe to a topic
+      lcd.setCursor(0, 0);
+      lcd.clear();
     }
     else
     {
       Serial.print("Failed. Error code: ");
+      lcd.setCursor(0, 1);
+      lcd.print("                  ");
+      lcd.print("MQTT Conn. Failed");
+      lcd.setCursor(0, 2);
+      lcd.print("                  ");
+      lcd.print("Retrying in 5 sec.");
       Serial.println(mqttClient.state());
       Serial.println("Retrying in 5 seconds...");
       delay(5000);
+      lcd.setCursor(0, 2);
+      lcd.print("                  ");
     }
   }
 }

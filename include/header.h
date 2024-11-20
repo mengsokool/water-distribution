@@ -7,6 +7,7 @@
 #include <ArduinoJson.h>
 #include <PZEM004Tv30.h>
 #include <HardwareSerial.h>
+#include <LiquidCrystal_I2C.h>
 
 // ----------------------------
 // Network Configurations
@@ -36,6 +37,7 @@ extern int K1;
 extern int K2;
 extern int K3;
 extern int modeSelectorSwitch;
+extern int motorOverloadDetector;
 
 // ----------------------------
 // RS485 and Relay Control
@@ -81,6 +83,7 @@ extern byte OFF_RELAY_ALL[COMMAND_LENGTH_10];
 extern WiFiClient wifiClient;
 extern PubSubClient mqttClient;
 extern PZEM004Tv30 pzems[3];
+extern LiquidCrystal_I2C lcd;
 
 // ----------------------------
 // Enumerations
@@ -104,7 +107,8 @@ enum MotorState {
     MOTOR_STAR,
     MOTOR_WAITING,
     MOTOR_WAITING_DELTA,
-    MOTOR_DELTA
+    MOTOR_DELTA,
+    MOTOR_OVERLOAD
 };
 
 extern MotorState motorState;
